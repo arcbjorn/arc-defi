@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.9;
 
+import "@chainlink/contracts/src/v0.6/vendor/SafeMathChainlink.sol";
+
 interface AggregatorInterface {
 
   function decimals()
@@ -54,10 +56,21 @@ interface AggregatorInterface {
 }
 
 contract FundMe {
+    using SafeMathChainlink for uint256;
 
     mapping(address => uint256) public addressToAmountFunded;
+    address public owner;
+
+    constructor() public {
+      owner = msg.sender;
+    }
 
     function fund() public payable {
+        // 50$
+        uint256 minimumUSD = 50 * 10 * 18;
+
+        require(getConversionRate(msg.value) >= minimumUSD, "More ETH is required!");
+
         addressToAmountFunded[msg.sender] += msg.value;
         // ETH - USD conversion date
     }
@@ -78,5 +91,10 @@ contract FundMe {
         uint256 ethAmount = getPrice();
         uint256 ethAmountInUSD = (ethPrice * ethAmount) / 1000000000000000000;
         return ethAmountInUSD;
+    }
+
+    function withdraw() payable public {
+      require(msg.sender == owner);
+      msg.sender.transfer(address(this).balance);
     }
 }
