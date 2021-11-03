@@ -61,4 +61,22 @@ contract FundMe {
         addressToAmountFunded[msg.sender] += msg.value;
         // ETH - USD conversion date
     }
+
+    function getVersion() public view returns (uint256) {
+        AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
+        return priceFeed.version();
+    }
+
+    function getPrice() public view returns (uint256) {
+        AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
+        (,int256 answer,,,) = priceFeed.latestRoundData();
+        return uint256(answer * 10000000000);
+    }
+
+    // 10000000000
+    function getConversionRate(uint256 ethAmount) public view returns (uint256) {
+        uint256 ethAmount = getPrice();
+        uint256 ethAmountInUSD = (ethPrice * ethAmount) / 1000000000000000000;
+        return ethAmountInUSD;
+    }
 }
