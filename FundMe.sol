@@ -72,7 +72,6 @@ contract FundMe {
         require(getConversionRate(msg.value) >= minimumUSD, "More ETH is required!");
 
         addressToAmountFunded[msg.sender] += msg.value;
-        // ETH - USD conversion date
     }
 
     function getVersion() public view returns (uint256) {
