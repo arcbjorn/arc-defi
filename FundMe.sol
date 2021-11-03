@@ -60,36 +60,39 @@ contract FundMe {
 
     mapping(address => uint256) public addressToAmountFunded;
     address public owner;
+    address[] public funders;
 
     constructor() public {
       owner = msg.sender;
     }
 
     function fund() public payable {
-        // 50$
-        uint256 minimumUSD = 50 * 10 * 18;
+      // 50$
+      uint256 minimumUSD = 50 * 10 * 18;
 
-        require(getConversionRate(msg.value) >= minimumUSD, "More ETH is required!");
+      require(getConversionRate(msg.value) >= minimumUSD, "More ETH is required!");
 
-        addressToAmountFunded[msg.sender] += msg.value;
+      addressToAmountFunded[msg.sender] += msg.value;
+
+      funders.push(msg.sender);
     }
 
     function getVersion() public view returns (uint256) {
-        AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
-        return priceFeed.version();
+      AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
+      return priceFeed.version();
     }
 
     function getPrice() public view returns (uint256) {
-        AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
-        (,int256 answer,,,) = priceFeed.latestRoundData();
-        return uint256(answer * 10000000000);
+      AggregatorInterface priceFeed = AggregatorInterface(0x8ML534M345L54M52345234234);
+      (,int256 answer,,,) = priceFeed.latestRoundData();
+      return uint256(answer * 10000000000);
     }
 
     // 10000000000
     function getConversionRate(uint256 ethAmount) public view returns (uint256) {
-        uint256 ethAmount = getPrice();
-        uint256 ethAmountInUSD = (ethPrice * ethAmount) / 1000000000000000000;
-        return ethAmountInUSD;
+      uint256 ethAmount = getPrice();
+      uint256 ethAmountInUSD = (ethPrice * ethAmount) / 1000000000000000000;
+      return ethAmountInUSD;
     }
 
     modifier onlyOwner {
@@ -98,7 +101,11 @@ contract FundMe {
     }
 
     function withdraw() payable onlyOwner public {
-      require(msg.sender == owner);
       msg.sender.transfer(address(this).balance);
+      for (uint256 funderIndex=0; funderIndex < funders.length; funderIndex++) {
+        address funder = funders[funderIndex];
+        addressToAmountFunded[funder] = 0;
+      }
+      funders = new address[](0);
     }
 }
